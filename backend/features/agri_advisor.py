@@ -7,6 +7,19 @@ from backend.features import location_info
 from backend.features import rule_engine # Will use the new stage-aware version
 from backend import config
 
+# ADD THIS BLOCK AT THE TOP OF THE FILE
+import os
+from dotenv import load_dotenv
+
+# This command finds and loads your .env file
+load_dotenv()
+GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+# This check confirms if the key was loaded
+if not GEMINI_API_KEY:
+    print(f"---!!! CRITICAL ERROR in {__file__}: GOOGLE_API_KEY not found. Check .env file. !!!---")
+else:
+    print(f"--- SUCCESS in {__file__}: Google API Key loaded. ---")
 async def generate_agri_advice(city: str, state: str, crop: str, crop_stage: str, lang: str = 'en'):
     """
     Generates farming advice that is now aware of the crop's growth stage.
@@ -43,17 +56,35 @@ async def generate_agri_advice(city: str, state: str, crop: str, crop_stage: str
     api_key = config.GEMINI_API_KEY 
     api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
+    # --- Call the Gemini AI Model ---
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
+    
+    payload = {"contents": messages} # Assuming 'messages' is the variable holding your prompt
 
     try:
-        response = requests.post(api_url, json=payload, headers={'Content-Type': 'application/json'}, timeout=20)
+        # ADDED TIMEOUT and detailed error handling
+        response = requests.post(api_url, json=payload, headers={'Content-Type': 'application/json'}, timeout=30)
         response.raise_for_status()
         result = response.json()
         
-        ai_summary = result['candidates'][0]['content']['parts'][0]['text'] if 'candidates' in result else "Could not generate AI summary."
+        # Safely parse the response
+        ai_response = result.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', "Could not generate a valid plan.")
+        
+        # We assume the AI gives a JSON-like string that we need to parse
+        # This is a placeholder; the real parsing might be more complex
+        import json
+        plan_data = json.loads(ai_response)
+        return {"plan": plan_data}
 
+    except requests.exceptions.Timeout:
+        print(f"---!!! BACKEND AI ERROR in {__file__}!!!--- : The request to Google AI timed out.")
+        return {"error": "AI service timed out. Please try again."}
     except requests.exceptions.RequestException as e:
-        print(f"AI API Error: {e}")
-        ai_summary = "Could not connect to the AI service."
+        print(f"---!!! BACKEND AI ERROR in {__file__}!!!---")
+        print(f"An exception occurred: {e}")
+        if e.response is not None:
+            print(f"Response from server: {e.response.text}")
+        return {"error": "Could not connect to AI service. Check backend logs."}
 
     return {
         "agro_climatic_zone": agro_climatic_zone,

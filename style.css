@@ -1,0 +1,39 @@
+/* style.css */
+
+/* Main theme colors */
+:root {
+    --primary-color: #2ECC71; /* Vibrant Green */
+    --background-color: #0E1117;
+    --secondary-background-color: #1c2028;
+    --text-color: #FAFAFA;
+    --sidebar-background: #090c10;
+}
+
+/* Target the main app container */
+[data-testid="stAppViewContainer"] {
+    background-color: var(--background-color);
+}
+
+/* Target the sidebar */
+[data-testid="stSidebar"] {
+    background-color: var(--sidebar-background);
+}
+
+/* Style the buttons */
+.stButton>button {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+}
+.stButton>button:hover {
+    background-color: #27ae60; /* A darker green for hover */
+}
+
+/* Style the containers and cards */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: var(--secondary-background-color);
+    border-radius: 12px;
+    padding: 1rem;
+}

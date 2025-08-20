@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing import List
 
 # Import all feature modules
-from backend.features import (
+from .features import (
     weather, agri_advisor, location_info, mandi_prices, 
     disease_detection, govt_schemes, tts, chatbot, productivity_booster # <-- NEW IMPORT
 )

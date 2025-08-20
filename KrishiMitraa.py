@@ -59,6 +59,38 @@ LANGUAGE_DATA = {
         "weather_alert": "🌦️ मौसम चेतावनी",
         "crop_calendar": "📅 फसल कैलेंडर",
     }
+
+    
+    "Bengali": {
+        "welcome": "🌾 কৃষি মিত্র-তে স্বাগতম!",
+        "fertilizer": "🌱 সার সুপারিশ",
+        "loan": "🏦 ঋণ/ভর্তুকি যাচাই",
+        "weather_alert": "🌦️ আবহাওয়ার সতর্কবার্তা",
+        "crop_calendar": "📅 ফসল ক্যালেন্ডার",
+        "mandi_prices": "📊 মান্ডির দাম",
+        "tts_lang": "bn"
+    },
+
+    "Odia": {
+        "welcome": "🌾 କୃଷି ମିତ୍ରରେ ସ୍ଵାଗତ!",
+        "fertilizer": "🌱 ସାର ସୁପାରିଶ",
+        "loan": "🏦 ଋଣ/ସବସିଡି ଯାଞ୍ଚ",
+        "weather_alert": "🌦️ ପାଣିପାଗ ସତର୍କତା",
+        "crop_calendar": "📅 ଫସଲ କ୍ୟାଲେଣ୍ଡର",
+        "mandi_prices": "📊 ମଣ୍ଡି ଦର",
+        "tts_lang": "or"
+    },
+
+        "Assamese": {
+        "welcome": "🌾 কৃষি মিত্ৰলৈ স্বাগতম!",
+        "fertilizer": "🌱 সাৰৰ পৰামৰ্শ",
+        "loan": "🏦 ঋণ/ৰাজসাহায্য পৰীক্ষক",
+        "weather_alert": "🌦️ বতৰৰ সতৰ্কবাণী",
+        "crop_calendar": "📅 শস্যৰ কেলেণ্ডাৰ",
+        "mandi_prices": "📊 মন্দিৰ দৰ",
+        "tts_lang": "as"
+    },
+
     # Add other languages here as needed
 }
 
