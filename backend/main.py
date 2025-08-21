@@ -73,10 +73,34 @@ def get_crop_recommendation(city: str = "Udaipur", state: str = "Rajasthan"):
         "location": {"city": city, "state": state, "agro_climatic_zone": zone_name},
         "recommended_crops": recommended_crops
     }
+# In /backend/main.py
 
 @app.get("/api/v1/mandi_prices")
-def get_mandi_prices(state: str = "Rajasthan", commodity: str = "Wheat"):
-    return mandi_prices.get_live_prices_for_commodity(state, commodity)
+def get_mandi_prices(state: str, commodity: str):
+    """
+    Returns sample mandi price data based on state and commodity.
+    In a real-world application, this would fetch data from a live database or a government API.
+    """
+    print(f"Received request for Mandi prices in '{state}' for '{commodity}'")
+
+    # Sample database of prices
+    all_prices = {
+        "Rajasthan": {
+            "Wheat": [{"mandi_name": "Jaipur (Ramganj)", "price": "2350 INR/Quintal"}, {"mandi_name": "Kota (Bhamashah)", "price": "2280 INR/Quintal"}],
+            "Mustard": [{"mandi_name": "Alwar", "price": "5500 INR/Quintal"}, {"mandi_name": "Bikaner", "price": "5450 INR/Quintal"}]
+        },
+        "Punjab": {
+            "Wheat": [{"mandi_name": "Ludhiana", "price": "2400 INR/Quintal"}, {"mandi_name": "Amritsar", "price": "2380 INR/Quintal"}],
+            "Rice": [{"mandi_name": "Moga", "price": "1900 INR/Quintal"}, {"mandi_name": "Patiala", "price": "1920 INR/Quintal"}]
+        }
+    }
+
+    # Logic to find the correct data
+    state_prices = all_prices.get(state, {})
+    commodity_prices = state_prices.get(commodity, [])
+    
+    # The frontend expects the data inside a key named "prices"
+    return {"prices": commodity_prices}
 
 @app.post("/api/v1/detect_disease")
 async def detect_disease(image: UploadFile = File(...)):
