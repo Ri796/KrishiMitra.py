@@ -58,7 +58,7 @@ LANGUAGE_DATA = {
         "loan": "🏦 कर्ज/सब्सिडी जांच",
         "weather_alert": "🌦️ मौसम चेतावनी",
         "crop_calendar": "📅 फसल कैलेंडर",
-    }
+    },
 
     
     "Bengali": {
