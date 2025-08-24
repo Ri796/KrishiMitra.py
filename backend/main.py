@@ -49,7 +49,7 @@ def get_weather(city: str = "Udaipur", state: str = "Rajasthan"):
 async def get_agri_advice(city: str = "Udaipur", state: str = "Rajasthan", crop: str = "wheat", crop_stage: str = "Sowing", lang: str = "en"):
     return await agri_advisor.generate_agri_advice(city, state, crop, crop_stage, lang)
 
-# --- NEW: Expert Diagnosis & Productivity Endpoint ---
+# --- Expert Diagnosis & Productivity Endpoint ---
 @app.post("/api/v1/expert_advice")
 async def get_expert_advice(request: ExpertAdviceRequest):
     """
@@ -63,8 +63,6 @@ async def get_expert_advice(request: ExpertAdviceRequest):
         lang=request.lang
     )
 
-# ... (all other endpoints remain the same) ...
-
 @app.get("/api/v1/crop_recommendation")
 def get_crop_recommendation(city: str = "Udaipur", state: str = "Rajasthan"):
     zone_name = location_info.get_agro_climatic_zone_name(city, state)
@@ -73,7 +71,6 @@ def get_crop_recommendation(city: str = "Udaipur", state: str = "Rajasthan"):
         "location": {"city": city, "state": state, "agro_climatic_zone": zone_name},
         "recommended_crops": recommended_crops
     }
-# In /backend/main.py
 
 @app.get("/api/v1/mandi_prices")
 def get_mandi_prices(state: str, commodity: str):
@@ -118,11 +115,26 @@ def generate_audio(text: str = "Welcome to KrishiMitra", lang: str = "en"):
         return StreamingResponse(audio_stream, media_type="audio/mpeg")
     return {"error": "Could not generate audio."}
 
+
 @app.post("/api/v1/chatbot")
 async def handle_chat(chat_request: ChatRequest):
-    history_dicts = [item.dict() for item in chat_request.history]
-    return await chatbot.generate_chatbot_response(
-        user_message=chat_request.user_message,
-        history=history_dicts,
-        language=chat_request.language
-    )
+    try:
+        history_dicts = [item.dict() for item in chat_request.history]
+        
+        # Call the actual AI logic function from the features module
+        ai_response_data = await chatbot.generate_chatbot_response(
+            user_message=chat_request.user_message,
+            history=history_dicts,
+            language=chat_request.language
+        )
+        
+        return ai_response_data
+
+    except Exception as e:
+        # It will catch ANY unexpected error and prevent the server from crashing.
+        print(f"---!!! UNHANDLED ERROR in /chatbot endpoint !!!---")
+        print(f"An unexpected error occurred: {e}")
+        # Instead of crashing, it returns a clear JSON error message.
+        return {
+            "response": "Sorry, a critical error occurred on the server. Please check the backend logs for details."
+        }

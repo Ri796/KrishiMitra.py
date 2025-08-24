@@ -57,7 +57,7 @@ async def generate_expert_advice(crop: str, crop_stage: str, problem_description
 
     # --- Prepare the payload for the API call ---
     messages = [{"role": "user", "parts": [{"text": system_prompt}]}]
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_API_KEY}"
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     payload = {"contents": messages}
 
     # --- Call the API and handle the response robustly ---

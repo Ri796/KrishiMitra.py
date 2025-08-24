@@ -3,19 +3,26 @@ import requests
 import pandas as pd
 from io import BytesIO
 
-# --- 1. PAGE CONFIGURATION (Must be the FIRST Streamlit command) ---
+# --- 1. PAGE CONFIGURATION  ---
 st.set_page_config(
     page_title="KrishiMitra - AI Farming Assistant",
     page_icon="🌾",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+# This function reads  local CSS file and injects it into the app.
+def load_local_css(file_name):  
+    try:
+        with open(file_name) as f: 
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.error(f"CSS file not found. Make sure you have a '{file_name}' file in the same directory as app.py.")
+load_local_css("style.css")
 
 # --- 2. BACKEND API URL ---
 BACKEND_URL = "http://127.0.0.1:8000"
 
-# --- 3. BHASHABUDDY: COMPLETE TRANSLATION DICTIONARY ---
-# This version includes ALL necessary keys for ALL languages to prevent KeyErrors.
+    # --- 3. BHASHABUDDY: COMPLETE TRANSLATION DICTIONARY ---
 translations = {
     "en": {
         "header": "KrishiMitra", "subheader": "Your AI-powered assistant for smart farming decisions in India.",
@@ -35,17 +42,53 @@ translations = {
         "enter_state": "Enter Your State:", "get_recommendations_button": "Get Recommendations", "recommendations_spinner": "Analyzing location..."
     },
     "hi": {
-        "header": "कृषि मित्र", "subheader": "भारत में स्मार्ट खेती के फैसलों के लिए आपका एआई-संचालित सहायक।",
-        "bhashabuddy_header": "भाषाबडी", "choose_language": "भाषा चुनें:", "sidebar_info": "पूरी तरह से अनुवादित अनुभव के लिए एक भाषा चुनें।",
+        "header": "कृषि मित्र", "subheader": "भारत में स्मार्ट खेती के फैसलों के लिए आपका एआई-संचालित सहायक।", "bhashabuddy_header": "भाषाबडी", "choose_language": "भाषा चुनें:", "sidebar_info": "पूरी तरह से अनुवादित अनुभव के लिए एक भाषा चुनें।",
         "tab_expert_diagnosis": "👩‍⚕️ विशेषज्ञ निदान", "tab_mandi": "📈 मंडी कीमतें", "tab_health": "🌿 फसल स्वास्थ्य", "tab_schemes": "📜 सरकारी योजनाएं", "tab_recommendations": "🌍 फसल सिफारिशें",
         "expert_header": "🧠 विशेषज्ञ निदान और उत्पादकता योजना", "expert_desc": "हमारे एआई कृषि विज्ञानी से विस्तृत कार्य योजना प्राप्त करने के लिए अपनी फसल की स्थिति का वर्णन करें।",
         "enter_crop": "1. अपनी फसल दर्ज करें:", "crop_stage": "2. फसल की अवस्था चुनें:", "problem_desc": "3. समस्या का वर्णन करें (जैसे, 'निचली पत्तियों पर पीले धब्बे'):", "goal": "4. आपका प्राथमिक लक्ष्य क्या है?", "get_plan_button": "विशेषज्ञ योजना बनाएं", "ai_spinner": "🤖 कृषिनेत्र एआई आपकी स्थिति का विश्लेषण कर रहा है...", "expert_plan_header": "आपकी कस्टम कार्य योजना:", "listen_plan": "इस योजना को सुनें", "audio_spinner": "ऑडियो बना रहा है...", "audio_error": "क्षमा करें, ऑडियो नहीं बन सका।",
-        "chatbot_header": "💬 त्वरित चैट", "chat_input_placeholder": "एक त्वरित प्रश्न पूछें...",
-        "mandi_header": "लाइव मंडी कीमतें", "mandi_desc": "नवीनतम कीमतें देखने के लिए अपना राज्य और वस्तु चुनें।", "select_state": "राज्य चुनें:", "select_commodity": "वस्तु चुनें:", "get_prices_button": "कीमतें प्राप्त करें", "price_spinner": "लाइव कीमतें प्राप्त हो रही हैं...",
+        "chatbot_header": "💬 त्वरित चैट", "chat_input_placeholder": "एक त्वरित प्रश्न पूछें...", "mandi_header": "लाइव मंडी कीमतें", "mandi_desc": "नवीनतम कीमतें देखने के लिए अपना राज्य और वस्तु चुनें।", "select_state": "राज्य चुनें:", "select_commodity": "वस्तु चुनें:", "get_prices_button": "कीमतें प्राप्त करें", "price_spinner": "लाइव कीमतें प्राप्त हो रही हैं...",
         "disease_header": "🌿 पौधे की बीमारी का पता लगाना", "disease_desc": "बीमारियों का पता लगाने के लिए पौधे की पत्ती की एक छवि अपलोड करें।", "upload_image": "एक छवि अपलोड करें:", "detect_disease_button": "बीमारी का पता लगाएं", "disease_spinner": "छवि का विश्लेषण हो रहा है...",
         "schemes_header": "📜 सरकारी योजना खोजक", "schemes_desc": "प्रासंगिक सरकारी योजनाओं को खोजने के लिए हमें अपने बारे में बताएं।", "enter_gender": "आपका लिंग:", "land_holding": "भूमि धारण (एकड़ में):", "are_you_loanee": "क्या आपने पहले ऋण लिया है?", "find_schemes_button": "योजनाएं खोजें", "schemes_spinner": "प्रासंगिक योजनाएं खोजी जा रही हैं...",
         "recommendations_header": "🌍 फसल सिफारिशें", "recommendations_desc": "अपने क्षेत्र के लिए उपयुक्त फसल सिफारिशें प्राप्त करने के लिए अपना स्थान दर्ज करें।", "enter_city": "अपना शहर दर्ज करें:", "enter_state": "अपना राज्य दर्ज करें:", "get_recommendations_button": "सिफारिशें प्राप्त करें", "recommendations_spinner": "स्थान का विश्लेषण हो रहा है..."
     },
+
+    "bn": {
+        "header": "কৃষিমিত্র", "subheader": "ভারতে স্মার্ট কৃষি সিদ্ধান্তের জন্য আপনার এআই-চালিত সহকারী।", "bhashabuddy_header": "ভাষাসাথী", "choose_language": "ভাষা নির্বাচন করুন:", "sidebar_info": "একটি সম্পূর্ণ অনূদিত অভিজ্ঞতার জন্য একটি ভাষা নির্বাচন করুন।",
+        "tab_expert_diagnosis": "👩‍⚕️ বিশেষজ্ঞ নির্ণয়", "tab_mandi": "📈 মন্ডি দর", "tab_health": "🌿 ফসল স্বাস্থ্য", "tab_schemes": "📜 সরকারি প্রকল্প", "tab_recommendations": "🌍 ফসল সুপারিশ",
+        "expert_header": "🧠 বিশেষজ্ঞ নির্ণয় ও উৎপাদনশীলতা পরিকল্পনা", "expert_desc": "আমাদের এআই কৃষিবিদের কাছ থেকে একটি বিস্তারিত কর্ম পরিকল্পনা পেতে আপনার ফসলের পরিস্থিতি বর্ণনা করুন।",
+        "enter_crop": "১. আপনার ফসল লিখুন:", "crop_stage": "২. ফসলের পর্যায় নির্বাচন করুন:", "problem_desc": "৩. সমস্যা বর্ণনা করুন (যেমন, 'নিচের পাতায় হলুদ দাগ'):", "goal": "৪. আপনার প্রাথমিক লক্ষ্য কি?", "get_plan_button": "বিশেষজ্ঞ পরিকল্পনা তৈরি করুন",
+        "ai_spinner": "🤖 কৃষিনেট এআই আপনার পরিস্থিতি বিশ্লেষণ করছে...", "expert_plan_header": "আপনার কাস্টম কর্ম পরিকল্পনা:", "listen_plan": "এই পরিকল্পনাটি শুনুন", "audio_spinner": "অডিও তৈরি হচ্ছে...", "audio_error": "দুঃখিত, অডিও তৈরি করা যায়নি।",
+        "chatbot_header": "💬 দ্রুত চ্যাট", "chat_input_placeholder": "একটি দ্রুত প্রশ্ন জিজ্ঞাসা করুন...", "mandi_header": "লাইভ মন্ডি দর", "mandi_desc": "নতুন দর দেখতে আপনার রাজ্য এবং পণ্য নির্বাচন করুন।", "select_state": "রাজ্য নির্বাচন করুন:", "select_commodity": "পণ্য নির্বাচন করুন:",
+        "get_prices_button": "দর পান", "price_spinner": "লাইভ দর আনা হচ্ছে...", "disease_header": "🌿 উদ্ভিদ রোগ সনাক্তকরণ", "disease_desc": "রোগ সনাক্ত করতে উদ্ভিদের পাতার একটি ছবি আপলোড করুন।", "upload_image": "একটি ছবি আপলোড করুন:", "detect_disease_button": "রোগ সনাক্ত করুন",
+        "disease_spinner": "ছবি বিশ্লেষণ করা হচ্ছে...", "schemes_header": "📜 সরকারি প্রকল্প খুঁজুন", "schemes_desc": "প্রাসঙ্গিক সরকারি প্রকল্প খুঁজে পেতে আপনার সম্পর্কে আমাদের বলুন।", "enter_gender": "আপনার লিঙ্গ:", "land_holding": "জমির পরিমাণ (একর):",
+        "are_you_loanee": "আপনি কি আগে ঋণ নিয়েছেন?", "find_schemes_button": "প্রকল্প খুঁজুন", "schemes_spinner": "প্রাসঙ্গিক প্রকল্প খোঁজা হচ্ছে...", "recommendations_header": "🌍 ফসল সুপারিশ", "recommendations_desc": "আপনার অঞ্চলের জন্য উপযুক্ত ফসল সুপারিশ পেতে আপনার অবস্থান লিখুন।",
+        "enter_city": "আপনার শহর লিখুন:", "enter_state": "আপনার রাজ্য লিখুন:", "get_recommendations_button": "সুপারিশ পান", "recommendations_spinner": "অবস্থান বিশ্লেষণ করা হচ্ছে..."
+    },
+    "as": {
+        "header": "কৃষি মিত্ৰ", "subheader": "ভাৰতত স্মাৰ্ট কৃষি সিদ্ধান্তৰ বাবে আপোনাৰ AI-চালিত সহায়ক।", "bhashabuddy_header": "ভাষা বন্ধু", "choose_language": "ভাষা নিৰ্বাচন কৰক:", "sidebar_info": "সম্পূৰ্ণ অনুবাদিত অভিজ্ঞতাৰ বাবে এটা ভাষা নিৰ্বাচন কৰক।",
+        "tab_expert_diagnosis": "👩‍⚕️ বিশেষজ্ঞ নিদান", "tab_mandi": "📈 মন্দিৰ দৰ", "tab_health": "🌿 শস্যৰ স্বাস্থ্য", "tab_schemes": "📜 চৰকাৰী আঁচনি", "tab_recommendations": "🌍 শস্যৰ চুপাৰিছ",
+        "expert_header": "🧠 বিশেষজ্ঞ নিদান আৰু उत्पादकता পৰিকল্পনা", "expert_desc": "আমাৰ AI কৃষি বিজ্ঞানীৰ পৰা বিতং কাৰ্য পৰিকল্পনা পাবলৈ আপোনাৰ শস্যৰ অৱস্থা বৰ্ণনা কৰক।",
+        "enter_crop": "১. আপোনাৰ শস্য দিয়ক:", "crop_stage": "২. শস্যৰ স্তৰ নিৰ্বাচন কৰক:", "problem_desc": "৩. সমস্যা বৰ্ণনা কৰক (যেনে, 'তলৰ পাতত হালধীয়া দাগ'):", "goal": "৪. আপোনাৰ প্ৰাথমিক লক্ষ্য কি?", "get_plan_button": "বিশেষজ্ঞ পৰিকল্পনা সৃষ্টি কৰক",
+        "ai_spinner": "🤖 কৃষি নেট AI আপোনাৰ অৱস্থা বিশ্লেষণ কৰি আছে...", "expert_plan_header": "আপোনাৰ কাষ্টম কাৰ্য পৰিকল্পনা:", "listen_plan": "এই পৰিকল্পনা শুনক", "audio_spinner": "অডিঅ' সৃষ্টি হৈ আছে...", "audio_error": "দুঃখিত, অডিঅ' সৃষ্টি কৰিব পৰা নগল।",
+        "chatbot_header": "💬 খৰতকীয়া চাট", "chat_input_placeholder": "এটা খৰতকীয়া প্ৰশ্ন সোধক...", "mandi_header": "লাইভ মন্দিৰ দৰ", "mandi_desc": "শেহতীয়া দৰ চাবলৈ আপোনাৰ ৰাজ্য আৰু সামগ্ৰী নিৰ্বাচন কৰক।", "select_state": "ৰাজ্য নিৰ্বাচন কৰক:", "select_commodity": "সামগ্ৰী নিৰ্বাচন কৰক:", "get_prices_button": "দৰ পাওক",
+        "price_spinner": "লাইভ দৰ সংগ্ৰহ কৰি আছে...", "disease_header": "🌿 উদ্ভিদৰ ৰোগ চিনাক্তকৰণ", "disease_desc": "ৰোগ চিনাক্ত কৰিবলৈ উদ্ভিদৰ পাতৰ এখন ছবি আপলোড কৰক।", "upload_image": "এখন ছবি আপলোড কৰক:", "detect_disease_button": "ৰোগ চিনাক্ত কৰক",
+        "disease_spinner": "ছবি বিশ্লেষণ কৰি আছে...", "schemes_header": "📜 চৰকাৰী আঁচনি সন্ধানকাৰী", "schemes_desc": "প্ৰাসংগিক চৰকাৰী আঁচনি বিচাৰিবলৈ আপোনাৰ বিষয়ে কওক।", "enter_gender": "আপোনাৰ লিংগ:", "land_holding": "মাটিৰ পৰিমাণ (একৰত):",
+        "are_you_loanee": "আপুনি আগতে ঋণ লৈছে নেকি?", "find_schemes_button": "আঁচনি বিচাৰক", "schemes_spinner": "প্ৰাসংগিক আঁচনি বিচাৰি আছে...", "recommendations_header": "🌍 শস্যৰ চুপাৰিছ", "recommendations_desc": "আপোনাৰ অঞ্চলৰ বাবে উপযুক্ত শস্যৰ চুপাৰিছ পাবলৈ আপোনাৰ অৱস্থান দিয়ক।",
+        "enter_city": "আপোনাৰ চহৰ দিয়ক:", "enter_state": "আপোনাৰ ৰাজ্য দিয়ক:", "get_recommendations_button": "চুপাৰিছ পাওক", "recommendations_spinner": "অৱস্থান বিশ্লেষণ কৰি আছে..."
+    },
+    "or": {
+        "header": "କୃଷି ମିତ୍ର", "subheader": "ଭାରତରେ ସ୍ମାର୍ଟ କୃଷି ନିଷ୍ପତ୍ତି ପାଇଁ ଆପଣଙ୍କ AI-ଚାଳିତ ସହାୟକ।", "bhashabuddy_header": "ଭାଷା ବନ୍ଧୁ", "choose_language": "ଭାଷା ବାଛନ୍ତୁ:", "sidebar_info": "ଏକ ସମ୍ପୂର୍ଣ୍ଣ ଅନୁବାଦିତ ଅନୁଭୂତି ପାଇଁ ଏକ ଭାଷା ବାଛନ୍ତୁ।",
+        "tab_expert_diagnosis": "👩‍⚕️ ବିଶେଷଜ୍ଞ ନିଦାନ", "tab_mandi": "📈 ମଣ୍ଡି ଦର", "tab_health": "🌿 ଫସଲ ସ୍ୱାସ୍ଥ୍ୟ", "tab_schemes": "📜 ସରକାରୀ ଯୋଜନା", "tab_recommendations": "🌍 ଫସଲ ସୁପାରିଶ",
+        "expert_header": "🧠 ବିଶେଷଜ୍ଞ ନିଦାନ ଏବଂ ଉତ୍ପାଦକତା ଯୋଜନା", "expert_desc": "ଆମର AI କୃଷି ବିଜ୍ଞାନୀଙ୍କଠାରୁ ଏକ ବିସ୍ତୃତ କାର୍ଯ୍ୟ ଯୋଜନା ପାଇବାକୁ ଆପଣଙ୍କ ଫସଲର ସ୍ଥିତି ବର୍ଣ୍ଣନା କରନ୍ତୁ।",
+        "enter_crop": "୧. ଆପଣଙ୍କ ଫସଲ ଦିଅନ୍ତୁ:", "crop_stage": "୨. ଫସଲର ପର୍ଯ୍ୟାୟ ବାଛନ୍ତୁ:", "problem_desc": "୩. ସମସ୍ୟା ବର୍ଣ୍ଣନା କରନ୍ତୁ (ଯେପରି, 'ତଳ ପତ୍ରରେ ହଳଦିଆ ଦାଗ'):", "goal": "୪. ଆପଣଙ୍କର ପ୍ରାଥମିକ ଲକ୍ଷ୍ୟ କ'ଣ?", "get_plan_button": "ବିଶେଷଜ୍ଞ ଯୋଜନା ପ୍ରସ୍ତୁତ କରନ୍ତୁ",
+        "ai_spinner": "🤖 କୃଷି ନେଟ୍ AI ଆପଣଙ୍କ ସ୍ଥିତି ବିଶ୍ଳେଷଣ କରୁଛି...", "expert_plan_header": "ଆପଣଙ୍କ କଷ୍ଟମ୍ କାର୍ଯ୍ୟ ଯୋଜନା:", "listen_plan": "ଏହି ଯୋଜନା ଶୁଣନ୍ତୁ", "audio_spinner": "ଅଡିଓ ପ୍ରସ୍ତୁତ ହେଉଛି...", "audio_error": "କ୍ଷମା କରନ୍ତୁ, ଅଡିଓ ପ୍ରସ୍ତୁତ ହୋଇପାରିଲା ନାହିଁ।",
+        "chatbot_header": "💬 ତୁରନ୍ତ ଚାଟ୍", "chat_input_placeholder": "ଏକ ତୁରନ୍ତ ପ୍ରଶ୍ନ ପଚାରନ୍ତୁ...", "mandi_header": "ଲାଇଭ ମଣ୍ଡି ଦର", "mandi_desc": "ନୂତନ ଦର ଦେଖିବା ପାଇଁ ଆପଣଙ୍କ ରାଜ୍ୟ ଏବଂ ସାମଗ୍ରୀ ବାଛନ୍ତୁ।", "select_state": "ରାଜ୍ୟ ବାଛନ୍ତୁ:", "select_commodity": "ସାମଗ୍ରୀ ବାଛନ୍ତୁ:", "get_prices_button": "ଦର ପାଆନ୍ତୁ",
+        "price_spinner": "ଲାଇଭ ଦର ଅଣାଯାଉଛି...", "disease_header": "🌿 ଉଦ୍ଭିଦ ରୋଗ ଚିହ୍ନଟ", "disease_desc": "ରୋଗ ଚିହ୍ନଟ କରିବାକୁ ଉଦ୍ଭିଦର ପତ୍ରର ଏକ ଛବି ଅପଲୋଡ୍ କରନ୍ତୁ।", "upload_image": "ଏକ ଛବି ଅପଲୋଡ୍ କରନ୍ତୁ:", "detect_disease_button": "ରୋଗ ଚିହ୍ନଟ କରନ୍ତୁ",
+        "disease_spinner": "ଛବି ବିଶ୍ଳେଷଣ କରାଯାଉଛି...", "schemes_header": "📜 ସରକାରୀ ଯୋଜନା ଖୋଜକ", "schemes_desc": "ପ୍ରାସଙ୍ଗିକ ସରକାରୀ ଯୋଜନା ଖୋଜିବା ପାଇଁ ଆମକୁ ଆପଣଙ୍କ ବିଷୟରେ କୁହନ୍ତୁ।", "enter_gender": "ଆପଣଙ୍କ ଲିଙ୍ଗ:", "land_holding": "ଜମି ପରିମାଣ (ଏକରରେ):",
+        "are_you_loanee": "ଆପଣ ପୂର୍ବରୁ ଋଣ ନେଇଛନ୍ତି କି?", "find_schemes_button": "ଯୋଜନା ଖୋଜନ୍ତୁ", "schemes_spinner": "ପ୍ରାସଙ୍ଗିକ ଯୋଜନା ଖୋଜାଯାଉଛି...", "recommendations_header": "🌍 ଫସଲ ସୁପାରିଶ", "recommendations_desc": "ଆପଣଙ୍କ ଅଞ୍ଚଳ ପାଇଁ ଉପଯୁକ୍ତ ଫସଲ ସୁପାରିଶ ପାଇବାକୁ ଆପଣଙ୍କ ସ୍ଥାନ ଦିଅନ୍ତୁ।",
+        "enter_city": "ଆପଣଙ୍କ ସହର ଦିଅନ୍ତୁ:", "enter_state": "ଆପଣଙ୍କ ରାଜ୍ୟ ଦିଅନ୍ତୁ:", "get_recommendations_button": "ସୁପାରିଶ ପାଆନ୍ତୁ", "recommendations_spinner": "ସ୍ଥାନ ବିଶ୍ଳେଷଣ କରାଯାଉଛି..."
+    },
+
     "mr": {
         "header": "कृषीमित्र", "subheader": "भारतातील स्मार्ट शेतीच्या निर्णयांसाठी तुमचा एआय-शक्ती असलेला सहाय्यक।", "bhashabuddy_header": "भाषाबडी", "choose_language": "भाषा निवडा:", "sidebar_info": "पूर्णपणे अनुवादित अनुभवासाठी एक भाषा निवडा।",
         "tab_expert_diagnosis": "👩‍⚕️ विशेषज्ञ निदान", "tab_mandi": "📈 मंडी भाव", "tab_health": "🌿 पीक आरोग्य", "tab_schemes": "📜 सरकारी योजना", "tab_recommendations": "🌍 पीक शिफारसी",
@@ -70,33 +113,6 @@ translations = {
         "disease_spinner": "ફોટોનું વિશ્લેષણ કરી રહ્યું છે...", "schemes_header": "📜 સરકારી યોજનાઓ શોધક", "schemes_desc": "સંબંધિત સરકારી યોજનાઓ શોધવા માટે અમને તમારા વિશે કહો।", "enter_gender": "તમારું લિંગ:", "land_holding": "જમીન ધારણ (એકરમાં):",
         "are_you_loanee": "શું તમે પહેલાં લોન લીધી છે?", "find_schemes_button": "યોજનાઓ શોધો", "schemes_spinner": "સંબંધિત યોજનાઓ શોધી રહ્યું છે...", "recommendations_header": "🌍 પાકની ભલામણો", "recommendations_desc": "તમારા પ્રદેશ માટે યોગ્ય પાકની ભલામણો મેળવવા માટે તમારું સ્થાન દાખલ કરો।",
         "enter_city": "તમારું શહેર દાખલ કરો:", "enter_state": "તમારું રાજ્ય દાખલ કરો:", "get_recommendations_button": "ભલામણો મેળવો", "recommendations_spinner": "સ્થાનનું વિશ્લેષણ કરી રહ્યું છે..."
-    },
-    
-    "bn": {
-    "header": "কৃষিমিত্র",
-    "subheader": "ভারতে স্মার্ট কৃষি সিদ্ধান্তের জন্য আপনার এআই-চালিত সহকারী।",
-    "bhashabuddy_header": "ভাষাসাথী",
-    "choose_language": "ভাষা নির্বাচন করুন:",
-    "sidebar_info": "একটি সম্পূর্ণ অনূদিত অভিজ্ঞতার জন্য একটি ভাষা নির্বাচন করুন।",
-    "tab_expert_diagnosis": "👩‍⚕️ বিশেষজ্ঞ নির্ণয়",
-    "tab_mandi": "📈 মন্ডি দর",
-    "tab_health": "🌿 ফসল স্বাস্থ্য",
-    "tab_schemes": "📜 সরকারি প্রকল্প",
-    "tab_recommendations": "🌍 ফসল সুপারিশ",
-    "expert_header": "🧠 বিশেষজ্ঞ নির্ণয় ও উৎপাদনশীলতা পরিকল্পনা",
-    "expert_desc": "আমাদের এআই কৃষিবিদের কাছ থেকে একটি বিস্তারিত কর্ম পরিকল্পনা পেতে আপনার ফসলের পরিস্থিতি বর্ণনা করুন।",
-    "enter_crop": "১. আপনার ফসল লিখুন:",
-    "crop_stage": "২. ফসলের পর্যায় নির্বাচন করুন:",
-    "problem_desc": "৩. সমস্যা বর্ণনা করুন (যেমন, 'নিচের পাতায় হলুদ দাগ'):",
-    "goal": "৪. আপনার প্রাথমিক লক্ষ্য কি?",
-    "get_plan_button": "বিশেষজ্ঞ পরিকল্পনা তৈরি করুন",
-    "ai_spinner": "🤖 কৃষিনেট এআই আপনার পরিস্থিতি বিশ্লেষণ করছে...",
-    "expert_plan_header": "আপনার কাস্টম কর্ম পরিকল্পনা:",
-    "listen_plan": "এই পরিকল্পনাটি শুনুন",
-    "audio_spinner": "অডিও তৈরি হচ্ছে...",
-    "audio_error": "দুঃখিত, অডিও তৈরি করা যায়নি।",
-    "chatbot_header": "💬 দ্রুত চ্যাট",
-    "chat_input_placeholder": "একটি দ্রুত প্রশ্ন জিজ্ঞাসা করুন...",
     },
 
     "as": {
@@ -136,109 +152,75 @@ translations = {
     },
 
     "ta": {
-    "header": "கிருஷிமித்ரா",
-    "subheader": "இந்தியாவில் ஸ்மார்ட் விவசாய முடிவுகளுக்கு உங்கள் AI-இயங்கும் உதவியாளர்.",
-    "bhashabuddy_header": "பாஷாபட்டி",
-    "choose_language": "மொழியைத் தேர்ந்தெடுக்கவும்:",
-    "sidebar_info": "முழுமையாக மொழிபெயர்க்கப்பட்ட அனுபவத்திற்கு ஒரு மொழியைத் தேர்ந்தெடுக்கவும்.",
-    "tab_expert_diagnosis": "👩‍⚕️ நிபுணர் கண்டறிதல்",
-    "tab_mandi": "📈 மண்டி விலைகள்",
-    "tab_health": "🌿 பயிர் ஆரோக்கியம்",
-    "tab_schemes": "📜 அரசாங்க திட்டங்கள்",
-    "tab_recommendations": "🌍 பயிர் பரிந்துரைகள்",
-    "expert_header": "🧠 நிபுணர் கண்டறிதல் மற்றும் உற்பத்தித்திறன் திட்டம்",
-    "expert_desc": "எங்கள் AI விவசாய விஞ்ஞானியிடமிருந்து விரிவான செயல் திட்டத்தைப் பெற உங்கள் பயிர் நிலையை விவரிக்கவும்.",
-    "enter_crop": "1. உங்கள் பயிரை உள்ளிடவும்:",
-    "crop_stage": "2. பயிர் நிலையைத் தேர்ந்தெடுக்கவும்:",
-    "problem_desc": "3. சிக்கலை விவரிக்கவும் (எ.கா., 'கீழ் இலைகளில் மஞ்சள் புள்ளிகள்'):",
-    "goal": "4. உங்கள் முதன்மை இலக்கு என்ன?",
-    "get_plan_button": "நிபுணர் திட்டத்தை உருவாக்கவும்",
-    "ai_spinner": "🤖 கிருஷிநெட் AI உங்கள் நிலையை பகுப்பாய்வு செய்கிறது...",
-    "expert_plan_header": "உங்கள் தனிப்பயன் செயல் திட்டம்:",
-    "listen_plan": "இந்தத் திட்டத்தைக் கேட்கவும்",
-    "audio_spinner": "ஆடியோ உருவாக்கப்படுகிறது...",
-    "audio_error": "மன்னிக்கவும், ஆடியோவை உருவாக்க முடியவில்லை.",
-    "chatbot_header": "💬 விரைவான அரட்டை",
-    "chat_input_placeholder": "ஒரு விரைவான கேள்வியைக் கேட்கவும்...",
-    },
+    "header": "கிருஷிமித்ரா", "subheader": "இந்தியாவில் ஸ்மார்ட் விவசாய முடிவுகளுக்கு உங்கள் AI-இயங்கும் உதவியாளர்.",
+    "bhashabuddy_header": "பாஷாபட்டி", "choose_language": "மொழியைத் தேர்ந்தெடுக்கவும்:", "sidebar_info": "முழுமையாக மொழிபெயர்க்கப்பட்ட அனுபவத்திற்கு ஒரு மொழியைத் தேர்ந்தெடுக்கவும்.",
+    "tab_expert_diagnosis": "👩‍⚕️ நிபுணர் கண்டறிதல்", "tab_mandi": "📈 மண்டி விலைகள்", "tab_health": "🌿 பயிர் ஆரோக்கியம்", "tab_schemes": "📜 அரசாங்க திட்டங்கள்", "tab_recommendations": "🌍 பயிர் பரிந்துரைகள்",
+    "expert_header": "🧠 நிபுணர் கண்டறிதல் மற்றும் உற்பத்தித்திறன் திட்டம்", "expert_desc": "எங்கள் AI விவசாய விஞ்ஞானியிடமிருந்து விரிவான செயல் திட்டத்தைப் பெற உங்கள் பயிர் நிலையை விவரிக்கவும்.",
+    "enter_crop": "1. உங்கள் பயிரை உள்ளிடவும்:", "crop_stage": "2. பயிர் நிலையைத் தேர்ந்தெடுக்கவும்:", "problem_desc": "3. சிக்கலை விவரிக்கவும் (எ.கா., 'கீழ் இலைகளில் மஞ்சள் புள்ளிகள்'):",
+    "goal": "4. உங்கள் முதன்மை இலக்கு என்ன?", "get_plan_button": "நிபுணர் திட்டத்தை உருவாக்கவும்", "ai_spinner": "🤖 கிருஷிநெட் AI உங்கள் நிலையை பகுப்பாய்வு செய்கிறது...",
+    "expert_plan_header": "உங்கள் தனிப்பயன் செயல் திட்டம்:", "listen_plan": "இந்தத் திட்டத்தைக் கேட்கவும்", "audio_spinner": "ஆடியோ உருவாக்கப்படுகிறது...", "audio_error": "மன்னிக்கவும், ஆடியோவை உருவாக்க முடியவில்லை.",
+    "chatbot_header": "💬 விரைவான அரட்டை", "chat_input_placeholder": "ஒரு விரைவான கேள்வியைக் கேட்கவும்...",
+    "mandi_header": "நேரடி மண்டி விலைகள்", "mandi_desc": "சமீபத்திய விலைகளைப் பார்க்க உங்கள் மாநிலம் மற்றும் பொருளைத் தேர்ந்தெடுக்கவும்.", "select_state": "மாநிலத்தைத் தேர்ந்தெடுக்கவும்:", "select_commodity": "பொருளைத் தேர்ந்தெடுக்கவும்:",
+    "get_prices_button": "விலைகளைப் பெறுங்கள்", "price_spinner": "நேரடி விலைகளைப் பெறுகிறது...", "disease_header": "🌿 தாவர நோய் கண்டறிதல்", "disease_desc": "நோய்களைக் கண்டறிய தாவர இலையின் படத்தை பதிவேற்றவும்.",
+    "upload_image": "படத்தைப் பதிவேற்றவும்:", "detect_disease_button": "நோயைக் கண்டறியவும்", "disease_spinner": "படத்தை பகுப்பாய்வு செய்கிறது...",
+    "schemes_header": "📜 அரசாங்க திட்டங்கள் கண்டறிபவர்", "schemes_desc": "தொடர்புடைய அரசாங்க திட்டங்களைக் கண்டுபிடிக்க உங்களைப் பற்றி எங்களிடம் கூறுங்கள்.", "enter_gender": "உங்கள் பாலினம்:", "land_holding": "நில உடைமை (ஏக்கரில்):",
+    "are_you_loanee": "நீங்கள் முன்பு கடன் வாங்கியுள்ளீர்களா?", "find_schemes_button": "திட்டங்களைக் கண்டறியவும்", "schemes_spinner": "தொடர்புடைய திட்டங்களைக் கண்டறிகிறது...",
+    "recommendations_header": "🌍 பயிர் பரிந்துரைகள்", "recommendations_desc": "உங்கள் பகுதிக்கு பொருத்தமான பயிர் பரிந்துரைகளைப் பெற உங்கள் இருப்பிடத்தை உள்ளிடவும்.",
+    "enter_city": "உங்கள் நகரத்தை உள்ளிடவும்:", "enter_state": "உங்கள் மாநிலத்தை உள்ளிடவும்:", "get_recommendations_button": "பரிந்துரைகளைப் பெறுங்கள்", "recommendations_spinner": "இருப்பிடத்தை பகுப்பாய்வு செய்கிறது..."
+},
+
     "te": {
-    "header": "కృషిమిత్ర",
-    "subheader": "భారతదేశంలో స్మార్ట్ వ్యవసాయ నిర్ణయాల కోసం మీ AI-ఆధారిత సహాయకుడు.",
-    "bhashabuddy_header": "భాషాబడ్డీ",
-    "choose_language": "భాషను ఎంచుకోండి:",
-    "sidebar_info": "పూర్తిగా అనువదించబడిన అనుభవం కోసం ఒక భాషను ఎంచుకోండి.",
-    "tab_expert_diagnosis": "👩‍⚕️ నిపుణుల నిర్ధారణ",
-    "tab_mandi": "📈 మండి ధరలు",
-    "tab_health": "🌿 పంట ఆరోగ్యం",
-    "tab_schemes": "📜 ప్రభుత్వ పథకాలు",
-    "tab_recommendations": "🌍 పంట సిఫార్సులు",
-    "expert_header": "🧠 నిపుణుల నిర్ధారణ మరియు ఉత్పాదకత ప్రణాళిక",
-    "expert_desc": "మా AI వ్యవసాయ శాస్త్రవేత్త నుండి వివరణాత్మక కార్యాచరణ ప్రణాళికను పొందడానికి మీ పంట పరిస్థితిని వివరించండి.",
-    "enter_crop": "1. మీ పంటను నమోదు చేయండి:",
-    "crop_stage": "2. పంట దశను ఎంచుకోండి:",
-    "problem_desc": "3. సమస్యను వివరించండి (ఉదా., 'దిగువ ఆకులపై పసుపు మచ్చలు'):",
-    "goal": "4. మీ ప్రాథమిక లక్ష్యం ఏమిటి?",
-    "get_plan_button": "నిపుణుల ప్రణాళికను రూపొందించండి",
-    "ai_spinner": "🤖 కృషిநெட் AI మీ పరిస్థితిని విశ్లేషిస్తోంది...",
-    "expert_plan_header": "మీ కస్టమ్ కార్యాచరణ ప్రణాళిక:",
-    "listen_plan": "ఈ ప్రణాళికను వినండి",
-    "audio_spinner": "ఆడియో సృష్టించబడుతోంది...",
-    "audio_error": "క్షమించండి, ఆడియోను సృష్టించడం సాధ్యం కాలేదు.",
-    "chatbot_header": "💬 త్వరిత చాట్",
-    "chat_input_placeholder": "ఒక శీఘ్ర ప్రశ్న అడగండి...",
-    },
+    "header": "కృషిమిత్ర", "subheader": "భారతదేశంలో స్మార్ట్ వ్యవసాయ నిర్ణయాల కోసం మీ AI-ఆధారిత సహాయకుడు.",
+    "bhashabuddy_header": "భాషాబడ్డీ", "choose_language": "భాషను ఎంచుకోండి:", "sidebar_info": "పూర్తిగా అనువదించబడిన అనుభవం కోసం ఒక భాషను ఎంచుకోండి.",
+    "tab_expert_diagnosis": "👩‍⚕️ నిపుణుల నిర్ధారణ", "tab_mandi": "📈 మండి ధరలు", "tab_health": "🌿 పంట ఆరోగ్యం", "tab_schemes": "📜 ప్రభుత్వ పథకాలు", "tab_recommendations": "🌍 పంట సిఫార్సులు",
+    "expert_header": "🧠 నిపుణుల నిర్ధారణ మరియు ఉత్పాదకత ప్రణాళిక", "expert_desc": "మా AI వ్యవసాయ శాస్త్రవేత్త నుండి వివరణాత్మక కార్యాచరణ ప్రణాళికను పొందడానికి మీ పంట పరిస్థితిని వివరించండి.",
+    "enter_crop": "1. మీ పంటను నమోదు చేయండి:", "crop_stage": "2. పంట దశను ఎంచుకోండి:", "problem_desc": "3. సమస్యను వివరించండి (ఉదా., 'దిగువ ఆకులపై పసుపు మచ్చలు'):",
+    "goal": "4. మీ ప్రాథమిక లక్ష్యం ఏమిటి?", "get_plan_button": "నిపుణుల ప్రణాళికను రూపొందించండి", "ai_spinner": "🤖 కృషిநெட் AI మీ పరిస్థితిని విశ్లేషిస్తోంది...",
+    "expert_plan_header": "మీ కస్టమ్ కార్యాచరణ ప్రణాళిక:", "listen_plan": "ఈ ప్రణాళికను వినండి", "audio_spinner": "ఆడియో సృష్టించబడుతోంది...", "audio_error": "క్షమించండి, ఆడియోను సృష్టించడం సాధ్యం కాలేదు.",
+    "chatbot_header": "💬 త్వరిత చాట్", "chat_input_placeholder": "ఒక శీఘ్ర ప్రశ్న అడగండి...",
+    "mandi_header": "లైవ్ మండి ధరలు", "mandi_desc": "తాజా ధరలను చూడటానికి మీ రాష్ట్రం మరియు వస్తువును ఎంచుకోండి.", "select_state": "రాష్ట్రం ఎంచుకోండి:", "select_commodity": "వస్తువును ఎంచుకోండి:",
+    "get_prices_button": "ధరలను పొందండి", "price_spinner": "లైవ్ ధరలను పొందుతోంది...", "disease_header": "🌿 మొక్కల వ్యాధి నిర్ధారణ", "disease_desc": "వ్యాధులను గుర్తించడానికి మొక్క ఆకు యొక్క చిత్రాన్ని అప్‌లోడ్ చేయండి.",
+    "upload_image": "చిత్రాన్ని అప్‌లోడ్ చేయండి:", "detect_disease_button": "వ్యాధిని గుర్తించండి", "disease_spinner": "చిత్రాన్ని విశ్లేషిస్తోంది...",
+    "schemes_header": "📜 ప్రభుత్వ పథకాల ఫైండర్", "schemes_desc": "సంబంధిత ప్రభుత్వ పథకాలను కనుగొనడానికి మీ గురించి మాకు చెప్పండి.", "enter_gender": "మీ లింగం:", "land_holding": "భూమి (ఎకరాలలో):",
+    "are_you_loanee": "మీరు ఇంతకు ముందు రుణం తీసుకున్నారా?", "find_schemes_button": "పథకాలను కనుగొనండి", "schemes_spinner": "సంబంధిత పథకాలను కనుగొంటోంది...",
+    "recommendations_header": "🌍 పంట సిఫార్సులు", "recommendations_desc": "మీ ప్రాంతానికి తగిన పంట సిఫార్సులను పొందడానికి మీ స్థానాన్ని నమోదు చేయండి.",
+    "enter_city": "మీ నగరాన్ని నమోదు చేయండి:", "enter_state": "మీ రాష్ట్రాన్ని నమోదు చేయండి:", "get_recommendations_button": "సిఫార్సులను పొందండి", "recommendations_spinner": "స్థానాన్ని విశ్లేషిస్తోంది..."
+},
     "kn": {
-    "header": "ಕೃಷಿಮಿತ್ರ",
-    "subheader": "ಭಾರತದಲ್ಲಿ ಸ್ಮಾರ್ಟ್ ಕೃಷಿ ನಿರ್ಧಾರಗಳಿಗಾಗಿ ನಿಮ್ಮ AI-ಚಾಲಿತ ಸಹಾಯಕ.",
-    "bhashabuddy_header": "ಭಾಷಾಬಡ್ಡಿ",
-    "choose_language": "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:",
-    "sidebar_info": "ಸಂಪೂರ್ಣ ಅನುವಾದಿತ ಅನುಭವಕ್ಕಾಗಿ ಒಂದು ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
-    "tab_expert_diagnosis": "👩‍⚕️ ತಜ್ಞರ ರೋಗನಿರ್ಣಯ",
-    "tab_mandi": "📈 ಮಂಡಿ ಬೆಲೆಗಳು",
-    "tab_health": "🌿 ಬೆಳೆ ಆರೋಗ್ಯ",
-    "tab_schemes": "📜 ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
-    "tab_recommendations": "🌍 ಬೆಳೆ ಶಿಫಾರಸುಗಳು",
-    "expert_header": "🧠 ತಜ್ಞರ ರೋಗನಿರ್ಣಯ ಮತ್ತು ಉತ್ಪಾದಕತೆ ಯೋಜನೆ",
-    "expert_desc": "ನಮ್ಮ AI ಕೃಷಿ ವಿಜ್ಞಾನಿಯಿಂದ ವಿವರವಾದ ಕ್ರಿಯಾ ಯೋಜನೆಯನ್ನು ಪಡೆಯಲು ನಿಮ್ಮ ಬೆಳೆ ಪರಿಸ್ಥಿತಿಯನ್ನು ವಿವರಿಸಿ.",
-    "enter_crop": "1. ನಿಮ್ಮ ಬೆಳೆಯನ್ನು ನಮೂದಿಸಿ:",
-    "crop_stage": "2. ಬೆಳೆ ಹಂತವನ್ನು ಆಯ್ಕೆಮಾಡಿ:",
-    "problem_desc": "3. ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ (ಉದಾ., 'ಕೆಳಗಿನ ಎಲೆಗಳ ಮೇಲೆ ಹಳದಿ ಚುಕ್ಕೆಗಳು'):",
-    "goal": "4. ನಿಮ್ಮ ಪ್ರಾಥಮಿಕ ಗುರಿ ಏನು?",
-    "get_plan_button": "ತಜ್ಞರ ಯೋಜನೆಯನ್ನು ರಚಿಸಿ",
-    "ai_spinner": "🤖 ಕೃಷಿನೆಟ್ AI ನಿಮ್ಮ ಪರಿಸ್ಥಿತಿಯನ್ನು ವಿಶ್ಲೇಷಿಸುತ್ತಿದೆ...",
-    "expert_plan_header": "ನಿಮ್ಮ ಕಸ್ಟಮ್ ಕ್ರಿಯಾ ಯೋಜನೆ:",
-    "listen_plan": "ಈ ಯೋಜನೆಯನ್ನು ಕೇಳಿ",
-    "audio_spinner": "ಆಡಿಯೋ ರಚಿಸಲಾಗುತ್ತಿದೆ...",
-    "audio_error": "ಕ್ಷಮಿಸಿ, ಆಡಿಯೋ ರಚಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
-    "chatbot_header": "💬 ತ್ವರಿತ ಚಾಟ್",
-    "chat_input_placeholder": "ಒಂದು ತ್ವರಿತ ಪ್ರಶ್ನೆ ಕೇಳಿ...",
-    },
+    "header": "ಕೃಷಿಮಿತ್ರ", "subheader": "ಭಾರತದಲ್ಲಿ ಸ್ಮಾರ್ಟ್ ಕೃಷಿ ನಿರ್ಧಾರಗಳಿಗಾಗಿ ನಿಮ್ಮ AI-ಚಾಲಿತ ಸಹಾಯಕ.",
+    "bhashabuddy_header": "ಭಾಷಾಬಡ್ಡಿ", "choose_language": "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:", "sidebar_info": "ಸಂಪೂರ್ಣ ಅನುವಾದಿತ ಅನುಭವಕ್ಕಾಗಿ ಒಂದು ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+    "tab_expert_diagnosis": "👩‍⚕️ ತಜ್ಞರ ರೋಗನಿರ್ಣಯ", "tab_mandi": "📈 ಮಂಡಿ ಬೆಲೆಗಳು", "tab_health": "🌿 ಬೆಳೆ ಆರೋಗ್ಯ", "tab_schemes": "📜 ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು", "tab_recommendations": "🌍 ಬೆಳೆ ಶಿಫಾರಸುಗಳು",
+    "expert_header": "🧠 ತಜ್ಞರ ರೋಗನಿರ್ಣಯ ಮತ್ತು ಉತ್ಪಾದಕತೆ ಯೋಜನೆ", "expert_desc": "ನಮ್ಮ AI ಕೃಷಿ ವಿಜ್ಞಾನಿಯಿಂದ ವಿವರವಾದ ಕ್ರಿಯಾ ಯೋಜನೆಯನ್ನು ಪಡೆಯಲು ನಿಮ್ಮ ಬೆಳೆ ಪರಿಸ್ಥಿತಿಯನ್ನು ವಿವರಿಸಿ.",
+    "enter_crop": "1. ನಿಮ್ಮ ಬೆಳೆಯನ್ನು ನಮೂದಿಸಿ:", "crop_stage": "2. ಬೆಳೆ ಹಂತವನ್ನು ಆಯ್ಕೆಮಾಡಿ:", "problem_desc": "3. ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ (ಉದಾ., 'ಕೆಳಗಿನ ಎಲೆಗಳ ಮೇಲೆ ಹಳದಿ ಚುಕ್ಕೆಗಳು'):",
+    "goal": "4. ನಿಮ್ಮ ಪ್ರಾಥಮಿಕ ಗುರಿ ಏನು?", "get_plan_button": "ತಜ್ಞರ ಯೋಜನೆಯನ್ನು ರಚಿಸಿ", "ai_spinner": "🤖 ಕೃಷಿನೆಟ್ AI ನಿಮ್ಮ ಪರಿಸ್ਥಿತಿಯನ್ನು ವಿಶ್ಲೇಷಿಸುತ್ತಿದೆ...",
+    "expert_plan_header": "ನಿಮ್ಮ ಕಸ್ಟಮ್ ಕ್ರಿಯಾ ಯೋಜನೆ:", "listen_plan": "ಈ ಯೋಜನೆಯನ್ನು ಕೇಳಿ", "audio_spinner": "ಆಡಿಯೋ ರಚಿಸಲಾಗುತ್ತಿದೆ...", "audio_error": "ಕ್ಷಮಿಸಿ, ಆಡಿಯೋ ರಚಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+    "chatbot_header": "💬 ತ್ವರಿತ ಚಾಟ್", "chat_input_placeholder": "ಒಂದು ತ್ವರಿತ ಪ್ರಶ್ನೆ ಕೇಳಿ...",
+    "mandi_header": "ಲೈವ್ ಮಂಡಿ ಬೆಲೆಗಳು", "mandi_desc": "ಇತ್ತೀಚಿನ ಬೆಲೆಗಳನ್ನು ನೋಡಲು ನಿಮ್ಮ ರಾಜ್ಯ ಮತ್ತು ಉತ್ಪನ್ನವನ್ನು ಆಯ್ಕೆಮಾಡಿ.", "select_state": "ರಾಜ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ:", "select_commodity": "ಉತ್ಪನ್ನವನ್ನು ಆಯ್ಕೆಮಾಡಿ:",
+    "get_prices_button": "ಬೆಲೆಗಳನ್ನು ಪಡೆಯಿರಿ", "price_spinner": "ಲೈವ್ ಬೆಲೆಗಳನ್ನು ಪಡೆಯಲಾಗುತ್ತಿದೆ...", "disease_header": "🌿 ಸಸ್ಯ ರೋಗ ಪತ್ತೆ", "disease_desc": "ರೋಗಗಳನ್ನು ಪತ್ತೆಹಚ್ಚಲು ಸಸ್ಯದ ಎಲೆಯ ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ.",
+    "upload_image": "ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ:", "detect_disease_button": "ರೋಗವನ್ನು ಪತ್ತೆಹಚ್ಚಿ", "disease_spinner": "ಚಿತ್ರವನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ...",
+    "schemes_header": "📜 ಸರ್ಕಾರಿ ಯೋಜನೆಗಳ ಶೋಧಕ", "schemes_desc": "ಸಂಬಂಧಿತ ಸರ್ಕಾರಿ ಯೋಜನೆಗಳನ್ನು ಹುಡುಕಲು ನಿಮ್ಮ ಬಗ್ಗೆ ನಮಗೆ ತಿಳಿಸಿ.", "enter_gender": "ನಿಮ್ಮ ಲಿಂಗ:", "land_holding": "ಭೂಮಿ (ಎಕರೆಗಳಲ್ಲಿ):",
+    "are_you_loanee": "ನೀವು ಮೊದಲು ಸಾಲ ಪಡೆದಿದ್ದೀರಾ?", "find_schemes_button": "ಯೋಜನೆಗಳನ್ನು ಹುಡುಕಿ", "schemes_spinner": "ಸಂಬಂಧಿತ ಯೋಜನೆಗಳನ್ನು ಹುಡುಕಲಾಗುತ್ತಿದೆ...",
+    "recommendations_header": "🌍 ಬೆಳೆ ಶಿಫಾರಸುಗಳು", "recommendations_desc": "ನಿಮ್ಮ ಪ್ರದೇಶಕ್ಕೆ ಸೂಕ್ತವಾದ ಬೆಳೆ ಶಿಫಾರಸುಗಳನ್ನು ಪಡೆಯಲು ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ನಮೂದಿಸಿ.",
+    "enter_city": "ನಿಮ್ಮ ನಗರವನ್ನು ನಮೂದಿಸಿ:", "enter_state": "ನಿಮ್ಮ ರಾಜ್ಯವನ್ನು ನಮೂದಿಸಿ:", "get_recommendations_button": "ಶಿಫಾರಸುಗಳನ್ನು ಪಡೆಯಿರಿ", "recommendations_spinner": "ಸ್ಥಳವನ್ನು ವಿಶ್ಲೇಷಿಸಲಾಗುತ್ತಿದೆ..."
+},
+
     "pa": {
-    "header": "ਕ੍ਰਿਸ਼ੀਮਿੱਤਰ",
-    "subheader": "ਭਾਰਤ ਵਿੱਚ ਸਮਾਰਟ ਖੇਤੀ ਦੇ ਫੈਸਲਿਆਂ ਲਈ ਤੁਹਾਡਾ AI-ਸੰਚਾਲਿਤ ਸਹਾਇਕ।",
-    "bhashabuddy_header": "ਭਾਸ਼ਾਬੱਡੀ",
-    "choose_language": "ਭਾਸ਼ਾ ਚੁਣੋ:",
-    "sidebar_info": "ਪੂਰੀ ਤਰ੍ਹਾਂ ਅਨੁਵਾਦ ਕੀਤੇ ਅਨੁਭਵ ਲਈ ਇੱਕ ਭਾਸ਼ਾ ਚੁਣੋ।",
-    "tab_expert_diagnosis": "👩‍⚕️ ਮਾਹਰ ਨਿਦਾਨ",
-    "tab_mandi": "📈 ਮੰਡੀ ਦੀਆਂ ਕੀਮਤਾਂ",
-    "tab_health": "🌿 ਫਸਲ ਦੀ ਸਿਹਤ",
-    "tab_schemes": "📜 ਸਰਕਾਰੀ ਯੋਜਨਾਵਾਂ",
-    "tab_recommendations": "🌍 ਫਸਲ ਦੀਆਂ ਸਿਫਾਰਸ਼ਾਂ",
-    "expert_header": "🧠 ਮਾਹਰ ਨਿਦਾਨ ਅਤੇ ਉਤਪਾਦਕਤਾ ਯੋਜਨਾ",
-    "expert_desc": "ਸਾਡੇ AI ਖੇਤੀ ਵਿਗਿਆਨੀ ਤੋਂ ਵਿਸਤ੍ਰਿਤ ਕਾਰਜ ਯੋਜਨਾ ਪ੍ਰਾਪਤ ਕਰਨ ਲਈ ਆਪਣੀ ਫਸਲ ਦੀ ਸਥਿਤੀ ਦਾ ਵਰਣਨ ਕਰੋ।",
-    "enter_crop": "1. ਆਪਣੀ ਫਸਲ ਦਾਖਲ ਕਰੋ:",
-    "crop_stage": "2. ਫਸਲ ਦਾ ਪੜਾਅ ਚੁਣੋ:",
-    "problem_desc": "3. ਸਮੱਸਿਆ ਦਾ ਵਰਣਨ ਕਰੋ (ਜਿਵੇਂ, 'ਹੇਠਲੇ ਪੱਤਿਆਂ 'ਤੇ ਪੀਲੇ ਧੱਬੇ'):",
-    "goal": "4. ਤੁਹਾਡਾ ਮੁੱਖ ਟੀਚਾ ਕੀ ਹੈ?",
-    "get_plan_button": "ਮਾਹਰ ਯੋਜਨਾ ਬਣਾਓ",
-    "ai_spinner": "🤖 ਕ੍ਰਿਸ਼ੀਨੈੱਟ AI ਤੁਹਾਡੀ ਸਥਿਤੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰ ਰਿਹਾ ਹੈ...",
-    "expert_plan_header": "ਤੁਹਾਡੀ ਕਸਟਮ ਕਾਰਜ ਯੋਜਨਾ:",
-    "listen_plan": "ਇਸ ਯੋਜਨਾ ਨੂੰ ਸੁਣੋ",
-    "audio_spinner": "ਆਡੀਓ ਬਣਾਇਆ ਜਾ ਰਿਹਾ ਹੈ...",
-    "audio_error": "ਮਾਫ ਕਰਨਾ, ਆਡੀਓ ਨਹੀਂ ਬਣਾਇਆ ਜਾ ਸਕਿਆ।",
-    "chatbot_header": "� ਤੁਰੰਤ ਗੱਲਬਾਤ",
-    "chat_input_placeholder": "ਇੱਕ ਤੁਰੰਤ ਸ",
-    },
+    "header": "ਕ੍ਰਿਸ਼ੀਮਿੱਤਰ", "subheader": "ਭਾਰਤ ਵਿੱਚ ਸਮਾਰਟ ਖੇਤੀ ਦੇ ਫੈਸਲਿਆਂ ਲਈ ਤੁਹਾਡਾ AI-ਸੰਚਾਲਿਤ ਸਹਾਇਕ।",
+    "bhashabuddy_header": "ਭਾਸ਼ਾਬੱਡੀ", "choose_language": "ਭਾਸ਼ਾ ਚੁਣੋ:", "sidebar_info": "ਪੂਰੀ ਤਰ੍ਹਾਂ ਅਨੁਵਾਦ ਕੀਤੇ ਅਨੁਭਵ ਲਈ ਇੱਕ ਭਾਸ਼ਾ ਚੁਣੋ।",
+    "tab_expert_diagnosis": "👩‍⚕️ ਮਾਹਰ ਨਿਦਾਨ", "tab_mandi": "📈 ਮੰਡੀ ਦੀਆਂ ਕੀਮਤਾਂ", "tab_health": "🌿 ਫਸਲ ਦੀ ਸਿਹਤ", "tab_schemes": "📜 ਸਰਕਾਰੀ ਯੋਜਨਾਵਾਂ", "tab_recommendations": "🌍 ਫਸਲ ਦੀਆਂ ਸਿਫਾਰਸ਼ਾਂ",
+    "expert_header": "🧠 ਮਾਹਰ ਨਿਦਾਨ ਅਤੇ ਉਤਪਾਦਕਤਾ ਯੋਜਨਾ", "expert_desc": "ਸਾਡੇ AI ਖੇਤੀ ਵਿਗਿਆਨੀ ਤੋਂ ਵਿਸਤ੍ਰਿਤ ਕਾਰਜ ਯੋਜਨਾ ਪ੍ਰਾਪਤ ਕਰਨ ਲਈ ਆਪਣੀ ਫਸਲ ਦੀ ਸਥਿਤੀ ਦਾ ਵਰਣਨ ਕਰੋ।",
+    "enter_crop": "1. ਆਪਣੀ ਫਸਲ ਦਾਖਲ ਕਰੋ:", "crop_stage": "2. ਫਸਲ ਦਾ ਪੜਾਅ ਚੁਣੋ:", "problem_desc": "3. ਸਮੱਸਿਆ ਦਾ ਵਰਣਨ ਕਰੋ (ਜਿਵੇਂ, 'ਹੇਠਲੇ ਪੱਤਿਆਂ 'ਤੇ ਪੀਲੇ ਧੱਬੇ'):",
+    "goal": "4. ਤੁਹਾਡਾ ਮੁੱਖ ਟੀਚਾ ਕੀ ਹੈ?", "get_plan_button": "ਮਾਹਰ ਯੋਜਨਾ ਬਣਾਓ", "ai_spinner": "🤖 ਕ੍ਰਿਸ਼ੀਨੈੱਟ AI ਤੁਹਾਡੀ ਸਥਿਤੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕਰ ਰਿਹਾ ਹੈ...",
+    "expert_plan_header": "ਤੁਹਾਡੀ ਕਸਟਮ ਕਾਰਜ ਯੋਜਨਾ:", "listen_plan": "ਇਸ ਯੋਜਨਾ ਨੂੰ ਸੁਣੋ", "audio_spinner": "ਆਡੀਓ ਬਣਾਇਆ ਜਾ ਰਿਹਾ ਹੈ...", "audio_error": "ਮਾਫ ਕਰਨਾ, ਆਡੀਓ ਨਹੀਂ ਬਣਾਇਆ ਜਾ ਸਕਿਆ।",
+    "chatbot_header": "💬 ਤੁਰੰਤ ਗੱਲਬਾਤ", "chat_input_placeholder": "ਇੱਕ ਤੁਰੰਤ ਸਵਾਲ ਪੁੱਛੋ...",
+    "mandi_header": "ਲਾਈਵ ਮੰਡੀ ਦੀਆਂ ਕੀਮਤਾਂ", "mandi_desc": "ਨਵੀਨਤਮ ਕੀਮਤਾਂ ਦੇਖਣ ਲਈ ਆਪਣਾ ਰਾਜ ਅਤੇ ਵਸਤੂ ਚੁਣੋ।", "select_state": "ਰਾਜ ਚੁਣੋ:", "select_commodity": "ਵਸਤੂ ਚੁਣੋ:", "get_prices_button": "ਕੀਮਤਾਂ ਪ੍ਰਾਪਤ ਕਰੋ",
+    "price_spinner": "ਲਾਈਵ ਕੀਮਤਾਂ ਪ੍ਰਾਪਤ ਕੀਤੀਆਂ ਜਾ ਰਹੀਆਂ ਹਨ...", "disease_header": "🌿 ਪੌਦੇ ਦੀ ਬਿਮਾਰੀ ਦਾ ਪਤਾ ਲਗਾਉਣਾ", "disease_desc": "ਬਿਮਾਰੀਆਂ ਦਾ ਪਤਾ ਲਗਾਉਣ ਲਈ ਪੌਦੇ ਦੇ ਪੱਤੇ ਦੀ ਇੱਕ ਤਸਵੀਰ ਅੱਪਲੋਡ ਕਰੋ।", "upload_image": "ਇੱਕ ਤਸਵੀਰ ਅੱਪਲੋਡ ਕਰੋ:",
+    "detect_disease_button": "ਬਿਮਾਰੀ ਦਾ ਪਤਾ ਲਗਾਓ", "disease_spinner": "ਤਸਵੀਰ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ...",
+    "schemes_header": "📜 ਸਰਕਾਰੀ ਯੋਜਨਾਵਾਂ ਖੋਜਕ", "schemes_desc": "ਸੰਬੰਧਿਤ ਸਰਕਾਰੀ ਯੋਜਨਾਵਾਂ ਲੱਭਣ ਲਈ ਸਾਨੂੰ ਆਪਣੇ ਬਾਰੇ ਦੱਸੋ।", "enter_gender": "ਤੁਹਾਡਾ ਲਿੰਗ:", "land_holding": "ਜ਼ਮੀਨ ਦੀ ਮਲਕੀਅਤ (ਏਕੜ ਵਿੱਚ):",
+    "are_you_loanee": "ਕੀ ਤੁਸੀਂ ਪਹਿਲਾਂ ਕਰਜ਼ਾ ਲਿਆ ਹੈ?", "find_schemes_button": "ਯੋਜਨਾਵਾਂ ਲੱਭੋ", "schemes_spinner": "ਸੰਬੰਧਿਤ ਯੋਜਨਾਵਾਂ ਲੱਭੀਆਂ ਜਾ ਰਹੀਆਂ ਹਨ...",
+    "recommendations_header": "🌍 ਫਸਲ ਦੀਆਂ ਸਿਫਾਰਸ਼ਾਂ", "recommendations_desc": "ਆਪਣੇ ਖੇਤਰ ਲਈ ਢੁਕਵੀਂ ਫਸਲ ਦੀਆਂ ਸਿਫਾਰਸ਼ਾਂ ਪ੍ਰਾਪਤ ਕਰਨ ਲਈ ਆਪਣਾ ਸਥਾਨ ਦਾਖਲ ਕਰੋ।",
+    "enter_city": "ਆਪਣਾ ਸ਼ਹਿਰ ਦਾਖਲ ਕਰੋ:", "enter_state": "ਆਪਣਾ ਰਾਜ ਦਾਖਲ ਕਰੋ:", "get_recommendations_button": "ਸਿਫਾਰਸ਼ਾਂ ਪ੍ਰਾਪਤ ਕਰੋ", "recommendations_spinner": "ਸਥਾਨ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ ਕੀਤਾ ਜਾ ਰਿਹਾ ਹੈ..."
+},
 
     "ml": {
         "header": "കൃഷി മിത്ര",
@@ -341,24 +323,6 @@ translations = {
         "get_recommendations_button": "ಸಲಹೆಲೆನ್ ಪಡೆಯಿರಿ",
         "recommendations_spinner": "ಜಾಗೆನ್ ವಿಶ್ಲೇಷಣೆ ಮಲ್ತೊಂದುಂಡು..."
     },
-
-    "tcy": {
-        "header": "ಕೃಷಿಮಿತ್ರ", "subheader": "ಭಾರತೊಡು ಸ್ಮಾರ್ಟ್ ಕೃಷಿ ನಿರ್ಧಾರೊಲೆಗ್ ನಿಕ್ಲೆನ AI-ಚಾಲಿತ ಸಹಾಯಕ.",
-        "bhashabuddy_header": "ಭಾಷಾಸಾಥಿ", "choose_language": "ಭಾಷೆನ್ ಆಯ್ಕೆ ಮಲ್ಪುಲೆ:", "sidebar_info": "ಪೂರ್ತಿ ಅನುವಾದ ಆಯಿನ ಅನುಭವೊಗು ಒಂಜಿ ಭಾಷೆನ್ ಆಯ್ಕೆ ಮಲ್ಪುಲೆ.",
-        "tab_expert_diagnosis": "👩‍⚕️ ತಜ್ಞೆರೆನ ರೋಗನಿರ್ಣಯ", "tab_mandi": "📈 ಮಂಡಿದ ಬೆಲೆಕುಲು", "tab_health": "🌿 ಬುಳೆತ್ತ ಆರೋಗ್ಯ", "tab_schemes": "📜 ಸರಕಾರಿ ಯೋಜನೆಲು", "tab_recommendations": "🌍 ಬುಳೆತ್ತ ಸಲಹೆಲು",
-        "expert_header": "🧠 ತಜ್ಞೆರೆನ ರೋಗನಿರ್ಣಯ ಬೊಕ್ಕ ಉತ್ಪಾದಕತೆ ಯೋಜನೆ", "expert_desc": "ನಮ್ಮ AI ಕೃಷಿ ವಿಜ್ಞಾನಿಡ್ದ್ ವಿವರವಾಯಿನ ಕ್ರಿಯಾ ಯೋಜನೆನ್ ಪಡೆಯೆರೆ ನಿಕ್ಲೆನ ಬುಳೆತ್ತ ಪರಿಸ್ಥಿತಿನ್ ವಿವರಿಸಾಲೆ.",
-        "enter_crop": "1. ನಿಕ್ಲೆನ ಬುಳೆನ್ ಪಾಡ್ಲೆ:", "crop_stage": "2. ಬುಳೆತ್ತ ಹಂತೊನು ಆಯ್ಕೆ ಮಲ್ಪುಲೆ:", "problem_desc": "3. ಸಮಸ್ಯೆನ್ ವಿವರಿಸಾಲೆ (ಉದಾಹರಣೆಗೆ, 'ತಿರ್ತ್‌ದ ಇರೆಕುಲೆಡ್ ಮಂಜೊಲ್ ಚುಕ್ಕೆಲು'):",
-        "goal": "4. ನಿಕ್ಲೆನ ಮುಖ್ಯ ಗುರಿ ದಾದಾ?", "get_plan_button": "ತಜ್ಞೆರೆನ ಯೋಜನೆನ್ ರಚನೆ ಮಲ್ಪುಲೆ", "ai_spinner": "🤖 ಕೃಷಿನೆಟ್ AI ನಿಕ್ಲೆನ ಪರಿಸ್ಥಿತಿನ್ ವಿಶ್ಲೇಷಣೆ ಮಲ್ತೊಂದುಂಡು...",
-        "expert_plan_header": "ನಿಕ್ಲೆನ ಕಸ್ಟಮ್ ಕ್ರಿಯಾ ಯೋಜನೆ:", "listen_plan": "ಈ ಯೋಜನೆನ್ ಕೇನುಲೆ", "audio_spinner": "ಆಡಿಯೋ ರಚನೆ ಆವೊಂದುಂಡು...", "audio_error": "ಕ್ಷಮೆ ಮಲ್ಪುಲೆ, ಆಡಿಯೋ ರಚನೆ ಮಲ್ಪರೆ ಆಯಿಜಿ.",
-        "chatbot_header": "💬 ಬೇಗೊದ ಚಾಟ್", "chat_input_placeholder": "ಒಂಜಿ ಬೇಗೊದ ಪ್ರಶ್ನೆ ಕೇನುಲೆ...",
-        "mandi_header": "లైవ్ ಮಂಡಿದ ಬೆಲೆಕುಲು", "mandi_desc": "ಪೊಸ ಬೆಲೆಕುಲೆನ್ ತೂವರೆ ನಿಕ್ಲೆನ ರಾಜ್ಯ ಬೊಕ್ಕ ವಸ್ತುನು ಆಯ್ಕೆ ಮಲ್ಪುಲೆ.", "select_state": "ರಾಜ್ಯ ಆಯ್ಕೆ ಮಲ್ಪುಲೆ:", "select_commodity": "ವಸ್ತು ಆಯ್ಕೆ ಮಲ್ಪುಲೆ:", "get_prices_button": "ಬೆಲೆಕುಲೆನ್ ಪಡೆಯಿರಿ",
-        "price_spinner": "ಲೈವ್ ಬೆಲೆಕುಲೆನ್ ಕನವೊಂದುಂಡು...", "disease_header": "🌿 ಸಸ್ಯ ರೋಗ ಪತ್ತೆ", "disease_desc": "ರೋಗೊಲೆನ್ ಪತ್ತೆ ಮಲ್ಪರೆ ಸಸ್ಯದ ಇರೆತ್ತ ಒಂಜಿ ಫೋಟೋನು ಅಪ್ಲೋಡ್ ಮಲ್ಪುಲೆ.", "upload_image": "ಒಂಜಿ ಫೋಟೋನು ಅಪ್ಲೋಡ್ ಮಲ್ಪುಲೆ:",
-        "detect_disease_button": "ರೋಗ ಪತ್ತೆ ಮಲ್ಪುಲೆ", "disease_spinner": "ಫೋಟೋನು ವಿಶ್ಲೇಷಣೆ ಮಲ್ತೊಂದುಂಡು...",
-        "schemes_header": "📜 ಸರಕಾರಿ ಯೋಜನೆಲೆನ್ ನಾಡ್ಲೆ", "schemes_desc": "ಸಂಬಂಧಪಟ್ಟ ಸರಕಾರಿ ಯೋಜನೆಲೆನ್ ನಾಡರೆ ನಮ್ಮೊಟ್ಟು ನಿಕ್ಲೆನ ಬಗ್ಗೆ ಪನ್ಲೆ.", "enter_gender": "ನಿಕ್ಲೆನ ಲಿಂಗ:", "land_holding": "ಭೂಮಿದ পরিমাণ (ಎಕರೆಡ್):",
-        "are_you_loanee": "ಈಕ್ ದುಂಬು ಸಾಲ ದೆತೊಂತೀರಾ?", "find_schemes_button": "ಯೋಜನೆಲೆನ್ ನಾಡ್ಲೆ", "schemes_spinner": "ಸಂಬಂಧಪಟ್ಟ ಯೋಜನೆಲೆನ್ ನಾಡೊಂದುಂಡು...",
-        "recommendations_header": "🌍 ಬುಳೆತ್ತ ಸಲಹೆಲು", "recommendations_desc": "ನಿಕ್ಲೆನ ಪ್ರದೇಶೊಗು ಸರಿ ಹೊಂದುನ ಬುಳೆತ್ತ ಸಲಹೆಲೆನ್ ಪಡೆಯೆರೆ ನಿಕ್ಲೆನ ಜಾಗೆನ್ ಪಾಡ್ಲೆ.", "enter_city": "ನಿಕ್ಲೆನ ನಗರೊನು ಪಾಡ್ಲೆ:",
-        "enter_state": "ನಿಕ್ಲೆನ ರಾಜ್ಯೊನು ಪಾಡ್ಲೆ:", "get_recommendations_button": "ಸಲಹೆಲೆನ್ ಪಡೆಯಿರಿ", "recommendations_spinner": "ಜಾಗೆನ್ ವಿಶ್ಲೇಷಣೆ ಮಲ್ತೊಂದುಂಡು..."
-    },
     
     "mni": {
         "header": "কৃষি মিত্র",
@@ -420,8 +384,8 @@ with st.sidebar:
     st.header(translations["en"]["bhashabuddy_header"] + " (" + translations["hi"]["bhashabuddy_header"] + ")")
     language_options = {
         "English": "en", "हिन्दी (Hindi)": "hi", "বাংলা (Bengali)": "bn", "অসমীয়া (Assamese)": "as", "ଓଡ଼ିଆ (Odia)": "or" , "తెలుగు (Telugu)": "te",
-        "मराठी (Marathi)": "mr", "தமிழ் (Tamil)": "ta", "ગુજરાતી (Gujarati)": "gu", "ಕನ್ನಡ (Kannada)": "kn",
-        "ਪੰਜਾਬੀ (Punjabi)": "pa"
+        "मराठी (Marathi)": "mr", "தமிழ் (Tamil)": "ta", "ગુજરાતી (Gujarati)": "gu", "ಕನ್ನಡ (Kannada)": "kn", "ਪੰਜਾਬੀ (Punjabi)": "pa",
+        "മലയാളം (Malayalam)": "ml", "ತುಳು (Tulu)": "tcy", "মণিপুরী (Manipuri)": "mni"
     }
     selected_language_name = st.selectbox("Choose Language:", list(language_options.keys()))
     selected_language_code = language_options.get(selected_language_name, "en")
@@ -445,7 +409,6 @@ with tab1:
         with st.container(border=True):
             st.header(t["expert_header"])
             st.markdown(t["expert_desc"])
-
             expert_crop = st.text_input(t["enter_crop"], "Tomato")
             expert_stage = st.selectbox(t["crop_stage"], ["Sowing", "Vegetative Growth", "Flowering", "Harvesting"])
             expert_problem = st.text_area(t["problem_desc"], "Yellow spots with brown edges on lower leaves.")
@@ -466,14 +429,12 @@ with tab1:
             st.markdown("---")
             st.subheader(t["expert_plan_header"])
             plan_data = st.session_state.expert_plan.get("plan", {})
-            
             if isinstance(plan_data, dict):
                 st.info(f"**Diagnosis:** {plan_data.get('diagnosis', 'N/A')}")
                 st.success("**Action Plan:**")
                 for step in plan_data.get('action_plan', []): st.markdown(f"- {step}")
                 st.warning("**Preventative Measures:**")
                 st.markdown(f"- {plan_data.get('preventative_measures', 'N/A')}")
-
                 full_plan_text = f"Diagnosis: {plan_data.get('diagnosis', '')}. Action Plan: {'. '.join(plan_data.get('action_plan', []))}. Preventative Measures: {plan_data.get('preventative_measures', '')}"
                 if st.button(t["listen_plan"]):
                     with st.spinner(t["audio_spinner"]):
@@ -489,68 +450,35 @@ with tab1:
             if "messages" not in st.session_state: st.session_state.messages = []
             for message in st.session_state.messages:
                 with st.chat_message(message["role"]): st.markdown(message["content"])
-
             if prompt := st.chat_input(t["chat_input_placeholder"]):
                 st.session_state.messages.append({"role": "user", "content": prompt})
                 with st.chat_message("user"): st.markdown(prompt)
                 with st.chat_message("assistant"):
                     with st.spinner("Thinking..."):
-                        response = requests.post(
-                            f"{BACKEND_URL}/api/v1/chatbot", 
-                            json={"user_message": prompt, "history": st.session_state.messages, "language": selected_language_code}
-                        )
+                        response = requests.post(f"{BACKEND_URL}/api/v1/chatbot", json={"user_message": prompt, "history": st.session_state.messages, "language": selected_language_code})
                         full_response = response.json().get("response", "Sorry, I had trouble processing that.")
                         st.markdown(full_response)
                 st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 # --- TAB 2: MANDI PRICES ---
-# --- TAB 2: MANDI PRICES ---
 with tab2:
     st.header(t["mandi_header"])
     st.markdown(t["mandi_desc"])
-
-    # Define the inputs
     states = ["Rajasthan", "Punjab", "Uttar Pradesh", "Madhya Pradesh", "Maharashtra"]
     commodities = ["Wheat", "Mustard", "Rice", "Maize", "Cotton", "Soybean"]
-    
     col1, col2 = st.columns(2)
-    with col1:
-        selected_state = st.selectbox(t["select_state"], states, key="mandi_state")
-    with col2:
-        selected_commodity = st.selectbox(t["select_commodity"], commodities, key="mandi_commodity")
-    
-    # The button to trigger the API call
+    with col1: selected_state = st.selectbox(t["select_state"], states)
+    with col2: selected_commodity = st.selectbox(t["select_commodity"], commodities)
     if st.button(t["get_prices_button"], use_container_width=True):
         with st.spinner(t["price_spinner"]):
             try:
-                # Make the API call to the backend
-                response = requests.get(
-                    f"{BACKEND_URL}/api/v1/mandi_prices", 
-                    params={"state": selected_state, "commodity": selected_commodity}
-                )
-                response.raise_for_status() # Raise an error for bad responses (4xx or 5xx)
-                
-                # Store the result in session state
-                st.session_state.mandi_data = response.json()
-
-            except requests.exceptions.RequestException as e:
-                st.error(f"Could not fetch prices. Error: {e}")
-                st.session_state.mandi_data = None
-
-    # --- Display Area for the results ---
-    # This part of the code runs every time, but only shows data if it exists.
-    if 'mandi_data' in st.session_state and st.session_state.mandi_data:
-        st.markdown("---")
-        st.subheader(f"Showing Prices for {selected_commodity} in {selected_state}")
-        
-        price_list = st.session_state.mandi_data.get("prices", [])
-        
-        if price_list:
-            # Use pandas DataFrame for a beautiful, sortable table
-            df = pd.DataFrame(price_list)
-            st.dataframe(df, use_container_width=True)
-        else:
-            st.warning("No price data is available for this commodity in the selected state.")
+                response = requests.get(f"{BACKEND_URL}/api/v1/mandi_prices", params={"state": selected_state, "commodity": selected_commodity})
+                response.raise_for_status()
+                data = response.json()
+                st.subheader(f"Prices for {selected_commodity} in {selected_state}")
+                if data.get("prices"): st.dataframe(pd.DataFrame(data["prices"]))
+                else: st.warning("No price data available for this selection.")
+            except requests.exceptions.RequestException as e: st.error(f"Could not fetch prices: {e}")
 
 # --- TAB 3: CROP HEALTH (DISEASE DETECTION) ---
 with tab3:
